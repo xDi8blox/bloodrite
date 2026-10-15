@@ -168,8 +168,8 @@ function onEvent(e: Ev, m: Match) {
     case 'pillar': { sfxPlay.pillar(); fx.shake = 0.15; const id = CHARS[g.f[e.who].ch].id; fx.pillar(e.x!, e.color!, id === 'vorath' ? 'fire' : id === 'kaijin' ? 'ice' : 'spike'); break; }
     case 'tele': fx.burst(e.x!, 1, tmpC.set(e.color!).multiplyScalar(3).clone(), 60, 2); sfxPlay.special(); break;
     case 'clash': fx.burst(e.x!, e.y!, new THREE.Color(4, 3, 2), 60, 4); sfxPlay.hit(true); fx.shake = 0.15; break;
-    case 'super': { const c = CHARS[g.f[e.who].ch]; superBanner(c.superName); sfxPlay.superHit(); flashScreen(0.6); letterbox(true); setTimeout(() => letterbox(false), 900); break; }
-    case 'ko': sfxPlay.ko(); flashScreen(0.8); fx.shake = 0.35; break;
+    case 'super': { const c = CHARS[g.f[e.who].ch]; superBanner(c.superName); sfxPlay.superHit(); flashScreen(0.35); letterbox(true); setTimeout(() => letterbox(false), 900); break; }
+    case 'ko': sfxPlay.ko(); flashScreen(0.45); fx.shake = 0.35; break;
     case 'finisher': letterbox(true); m.fin = { shattered: false, burst: false }; break;
     case 'announce': showAnnounce(e.text!); break;
   }
@@ -203,10 +203,10 @@ function fightCamera(g: GS, dt: number, snap = false) {
 function finisherFx(m: Match) {
   const g = m.gs; if (g.phase !== 'fatal' && !(g.phase === 'match' && g.finishOk)) return;
   const v = views[1 - g.winner], kind = CHARS[g.f[g.winner].ch].finKind, pt = g.phase === 'fatal' ? g.pt : 260, vx = g.f[1 - g.winner].x; const face = g.f[g.winner].face;
-  if (kind === 'burn') { v.u.edge.value.setRGB(5, 1.4, 0.2); v.u.veinCol.value.setRGB(5, 1, 0.1); if (pt > 40) v.u.dissolve.value = Math.min(1, (pt - 40) / 170); if (pt < 230) fx.burst(vx, 0.3 + Math.random() * 1.5, new THREE.Color(4, 1.2, 0.2), 6, 1.2, 0.7); }
-  if (kind === 'shatter') { v.u.frost.value = Math.min(1, Math.max(0, (pt - 15) / 60)); if (pt >= 120 && !m.fin.shattered) { m.fin.shattered = true; fx.shatter(v.model, new THREE.Color(0.6, 0.85, 1)); v.model.visible = false; v.setExtrasVisible(false); fx.bleed(vx, 1.1, face, 120, 5); sfxPlay.ko(); flashScreen(0.6); fx.shake = 0.4; } if (m.fin.shattered) { v.model.visible = false; } }
+  if (kind === 'burn') { v.u.edge.value.setRGB(5, 1.4, 0.2); v.u.veinCol.value.setRGB(5, 1, 0.1); if (pt > 40) v.u.dissolve.value = Math.min(1, (pt - 40) / 170); if (pt < 230) fx.burst(vx, 0.3 + Math.random() * 1.5, new THREE.Color(2.2, 0.6, 0.1), 3, 1.2, 0.7); }
+  if (kind === 'shatter') { v.u.frost.value = Math.min(1, Math.max(0, (pt - 15) / 60)); if (pt >= 120 && !m.fin.shattered) { m.fin.shattered = true; fx.shatter(v.model, new THREE.Color(0.6, 0.85, 1)); v.model.visible = false; v.setExtrasVisible(false); fx.bleed(vx, 1.1, face, 120, 5); sfxPlay.ko(); flashScreen(0.3); fx.shake = 0.4; } if (m.fin.shattered) { v.model.visible = false; } }
   if (kind === 'bleed') { v.u.edge.value.setRGB(3, 0, 0.1); if (pt > 30 && pt < 170) { fx.bleed(vx + (Math.random() - 0.5) * 0.3, 0.8 + Math.random() * 0.9, (Math.random() - 0.5) * 2, 10, 2); if (pt % 20 === 0) sfxPlay.splat(); } if (pt > 110) v.u.dissolve.value = Math.min(1, (pt - 110) / 120); }
-  if (kind === 'rot') { v.u.edge.value.setRGB(0.8, 4, 0.2); if (pt > 30) v.u.dissolve.value = Math.min(1, (pt - 30) / 190); if (pt < 230) fx.burst(vx, 0.2 + Math.random() * 1.4, new THREE.Color(0.8, 3.5, 0.3), 5, 0.8, 1); }
+  if (kind === 'rot') { v.u.edge.value.setRGB(0.8, 4, 0.2); if (pt > 30) v.u.dissolve.value = Math.min(1, (pt - 30) / 190); if (pt < 230) fx.burst(vx, 0.2 + Math.random() * 1.4, new THREE.Color(0.4, 1.8, 0.15), 3, 0.8, 1); }
   if (v.u.dissolve.value > 0.55) v.setExtrasVisible(false);
   if (pt === 200 && !m.fin.burst) { m.fin.burst = true; }
 }
@@ -427,7 +427,7 @@ void anyKey; void P; void K;
   freeze(on: boolean) { if (match) match.frozen = on; },
   /** step n frames with fixed inputs (or per-frame arrays), updating visuals at 60 Hz */
   sim(n: number, i0: number | number[] = 0, i1: number | number[] = 0) {
-    const m = match!; for (let k = 0; k < n; k++) { m.stepOnce(Array.isArray(i0) ? i0[k] ?? 0 : i0, Array.isArray(i1) ? i1[k] ?? 0 : i1); simT += 1 / 60; renderFight(m.gs, 1 / 60); }
+    const m = match!; for (let k = 0; k < n; k++) { m.stepOnce(Array.isArray(i0) ? i0[k] ?? 0 : i0, Array.isArray(i1) ? i1[k] ?? 0 : i1); simT += 1 / 60; renderFight(m.gs, 1 / 60); if (annT > 0 && (annT -= 1 / 60) <= 0) { $('announce').className = ''; $('subannounce').className = ''; } }
     if (m.gs.over && screen === '') results(m);
     return { phase: m.gs.phase, pt: m.gs.pt, hp: m.gs.f.map(f => Math.round(f.hp)), st: m.gs.f.map(f => f.st + ':' + f.mv), combo: m.gs.f.map(f => f.combo), wins: m.gs.f.map(f => f.wins), x: m.gs.f.map(f => +f.x.toFixed(2)), meter: m.gs.f.map(f => Math.round(f.meter)) };
   },

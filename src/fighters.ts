@@ -213,10 +213,11 @@ const COSTUME: Record<string, (v: FighterView, A: Assets) => void> = {
     const B = v.bones, k = v.kit; const H = wp(B.Head);
     v.eyes.color.set(0x220022); v.eyes.emissive = new THREE.Color(0.8, 0.1, 1); v.eyes.emissiveIntensity = 5;
     // CC0 long hair, re-tinted to black-crimson, attached rigidly to the head bone
-    A.hair.scene.updateMatrixWorld(true);
-    A.hair.scene.traverse(o => { const m = o as THREE.SkinnedMesh; if (!m.isMesh) return;
-      const hm = new THREE.Mesh(m.geometry, new THREE.MeshPhysicalMaterial({ map: (m.material as THREE.MeshStandardMaterial).map, normalMap: (m.material as THREE.MeshStandardMaterial).normalMap, color: 0x3a0610, roughness: 0.45, sheen: 1, sheenColor: new THREE.Color(0.8, 0.1, 0.2), side: THREE.DoubleSide, alphaTest: 0.4 }));
-      k.put(B.Head, hm, new THREE.Vector3()); });
+    let body: THREE.SkinnedMesh | undefined; v.model.traverse(o => { if ((o as THREE.SkinnedMesh).isSkinnedMesh && !body) body = o as THREE.SkinnedMesh; });
+    A.hair.scene.traverse(o => { const m = o as THREE.SkinnedMesh; if (!m.isSkinnedMesh || !body) return;
+      const hm = new THREE.SkinnedMesh(m.geometry, new THREE.MeshPhysicalMaterial({ map: (m.material as THREE.MeshStandardMaterial).map, normalMap: (m.material as THREE.MeshStandardMaterial).normalMap, color: 0x3a0610, roughness: 0.45, sheen: 1, sheenColor: new THREE.Color(0.8, 0.1, 0.2), side: THREE.DoubleSide, alphaTest: 0.4 }));
+      hm.castShadow = true; hm.frustumCulled = false; body.parent!.add(hm); hm.position.copy(body.position); hm.quaternion.copy(body.quaternion); hm.scale.copy(body.scale);
+      hm.bind(new THREE.Skeleton(m.skeleton.bones.map(b => B[b.name] ?? B.Head), m.skeleton.boneInverses), body.bindMatrix); });
     const boneM = std(0xe8e0d0, 0.35), gold = std(0x6a1020, 0.3, 0.8);
     // bone crown
     for (let i = 0; i < 7; i++) { const a = -0.9 + i * 0.3; const c = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.09 + (i === 3 ? 0.06 : Math.abs(3 - i) < 2 ? 0.03 : 0), 5), boneM); k.put(B.Head, c, H.clone().add(new THREE.Vector3(Math.sin(a) * 0.1, 0.205, Math.cos(a) * 0.09)), new THREE.Euler(Math.cos(a) * 0.3, 0, -Math.sin(a) * 0.3)); }

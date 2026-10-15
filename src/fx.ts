@@ -17,8 +17,8 @@ export class Fx {
     this.flash.scale.setScalar(0); scene.add(this.flash);
     this.decals = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: bloodTex, transparent: true, roughness: 0.15, metalness: 0.1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), 160);
     this.decals.count = 0; this.decals.receiveShadow = true; scene.add(this.decals);
-    this.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 1, 20, 1, true).rotateZ(Math.PI / 2).translate(0.5, 0, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
-    this.beamCore = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1, 12).rotateZ(Math.PI / 2).translate(0.5, 0, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 4, 4), toneMapped: false }));
+    this.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 1, 20, 1, true).rotateZ(Math.PI / 2).translate(0.5, 0, 0), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+    this.beamCore = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1, 12).rotateZ(Math.PI / 2).translate(0.5, 0, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(2, 2, 2), toneMapped: false }));
     this.beam.visible = this.beamCore.visible = false; scene.add(this.beam, this.beamCore);
     for (let i = 0; i < 2; i++) { const l = new THREE.PointLight(0xffffff, 0, 6, 1.5); scene.add(l); this.lights.push(l); }
   }
@@ -77,7 +77,7 @@ export class Fx {
     if (g) for (const f of g.f) if (f.st === 'attack' && f.mv === 'super' && f.t >= 22 && f.t <= 68) {
       const c = CHARS[f.ch]; const L = 7; const s = 1 + Math.sin(performance.now() / 30) * 0.15;
       for (const b of [this.beam, this.beamCore]) { b.visible = true; b.position.set(f.x + f.face * 0.5, f.y + 1.35, 0.1); b.scale.set(L * (b === this.beam ? 1 : 1), s, s); b.rotation.y = f.face > 0 ? 0 : Math.PI; }
-      (this.beam.material as THREE.MeshBasicMaterial).color.copy(col(c.glow, 2.5));
+      (this.beam.material as THREE.MeshBasicMaterial).color.copy(col(c.glow, 1.3));
       for (let i = 0; i < 10 * this.q; i++) this.magic.emit(f.x + f.face * (0.5 + Math.random() * L), f.y + 1.35 + (Math.random() - 0.5) * 0.5, 0.1, f.face * 3, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 0.4, col(c.glow, 3));
       this.shake = Math.max(this.shake, 0.06);
     }
