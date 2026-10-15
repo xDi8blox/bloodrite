@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#120000"><title>BLOODRITE — Rites of Damnation</title>
+<meta name="description" content="BLOODRITE: a gothic 2.5D browser fighting game. Four damned fighters, specials, supers and the DAMNATION finisher. Play vs CPU, local or online.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 2 L40 24 L62 26 L44 40 L50 62 L32 50 L14 62 L20 40 L2 26 L24 24Z' fill='%23b00'/%3E%3C/svg%3E">
+</head><body>
+<div id="app">
+<div id="hud" class="hidden">
+  <div class="bar l"><div class="frame"></div><div class="lag" id="lagA"></div><div class="hp" id="hpA"></div><div class="name" id="nameA">VORATH</div><div class="marks" id="mkA"><div class="mk"></div><div class="mk"></div></div>
+    <div class="meter"><div class="mfill" id="mtA"></div><span>SUPER</span></div></div>
+  <div class="bar r"><div class="frame"></div><div class="lag" id="lagB"></div><div class="hp" id="hpB"></div><div class="name" id="nameB">KAIJIN</div><div class="marks" id="mkB"><div class="mk"></div><div class="mk"></div></div>
+    <div class="meter"><div class="mfill" id="mtB"></div><span>SUPER</span></div></div>
+  <div id="timer">99</div>
+  <div class="combo" id="comboL"></div><div class="combo" id="comboR"></div>
+  <div id="announce"></div><div id="subannounce"></div>
+  <div id="netinfo"></div><div id="practiceinfo"></div>
+  <div id="superName"></div>
+</div>
+<div id="touch" class="hidden">
+  <div id="dpad"><div class="dp u">▲</div><div class="dp d">▼</div><div class="dp l">◀</div><div class="dp r">▶</div></div>
+  <div id="tbtns"><div class="tb" data-b="16">P</div><div class="tb" data-b="32">K</div><div class="tb" data-b="64">BLK</div><div class="tb" data-b="128">THR</div><div class="tb sup" data-b="256">SUP</div></div>
+  <div class="tb pause" id="tpause">II</div>
+</div>
+<div id="screens">
+  <section id="s-loading" class="screen"><div class="logo big"></div><div class="loadbar"><div id="loadfill"></div></div><div id="loadtxt">Summoning the damned… 0%</div></section>
+  <section id="s-title" class="screen"><div class="logo big"></div><div class="blink">PRESS ANY KEY · TAP TO BEGIN</div><div class="foot">CC0 characters by Quaternius · Code MIT</div></section>
+  <section id="s-menu" class="screen"><div class="logo"></div><nav class="menu" id="mainmenu"></nav><div class="foot" id="menuhint">↑↓ select · Enter/J confirm · Esc back</div></section>
+  <section id="s-options" class="screen panel"><h2>OPTIONS</h2><div id="optlist" class="menu opts"></div><div class="ctrls" id="ctrls"></div></section>
+  <section id="s-select" class="screen"><h2 id="seltitle">CHOOSE YOUR FIGHTER</h2><div id="selgrid"></div><div id="selinfo"></div></section>
+  <section id="s-arena" class="screen"><h2>CHOOSE THE ARENA</h2><div id="arenagrid"></div></section>
+  <section id="s-online" class="screen panel"><h2>ONLINE 1v1</h2><div id="onlinebody"></div></section>
+  <section id="s-moves" class="screen panel"><h2>MOVE LIST</h2><div id="movesbody"></div><div class="foot">Esc / tap to close</div></section>
+  <section id="s-credits" class="screen panel"><h2>CREDITS</h2><div id="creditsbody"></div></section>
+  <section id="s-pause" class="screen dim"><h2>PAUSED</h2><nav class="menu" id="pausemenu"></nav></section>
+  <section id="s-results" class="screen dim"><h2 id="restitle">VICTORY</h2><div id="ressub"></div><nav class="menu" id="resmenu"></nav></section>
+</div>
+<div id="rotate">⟳ Rotate your device to landscape</div>
+<div id="flashov"></div><div id="letterbox"><i></i><i></i></div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body></html>
