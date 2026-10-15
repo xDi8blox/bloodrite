@@ -70,7 +70,7 @@ class Kit {
 export class FighterView {
   def: CharDef; idx: number; root = new THREE.Group(); model: THREE.Object3D; bones: Bones = {}; mixer: THREE.AnimationMixer; acts: Record<string, THREE.AnimationAction> = {};
   sets: Record<string, string[]> = {}; active = new Set<string>(); cur = ''; u!: FxU; eyes!: THREE.MeshStandardMaterial; kit: Kit; chain?: { p: THREE.Vector3[]; o: THREE.Vector3[]; mesh: THREE.InstancedMesh; tip: THREE.Mesh };
-  lastSt = ''; lastMv = ''; fade = 0; scene: THREE.Scene; lat = new THREE.Vector3(); hiddenK = 0;
+  baseQ = new Map<THREE.Bone, THREE.Quaternion>(); lastSt = ''; lastMv = ''; fade = 0; scene: THREE.Scene; lat = new THREE.Vector3(); hiddenK = 0;
   constructor(scene: THREE.Scene, A: Assets, ci: number, idx: number) {
     this.scene = scene; this.def = CHARS[ci]; this.idx = idx; this.kit = new Kit(scene);
     const src = this.def.base === 'female' ? A.female : A.male;
@@ -129,7 +129,11 @@ export class FighterView {
     this.play(set, isAtk ? 0.06 : 0.12, scale, restart && f.t <= 2);
     this.lastSt = f.st; this.lastMv = isAtk ? mvName : '';
     if (f.st === 'walk' || f.st === 'back') this.acts.walkLow.timeScale = f.st === 'back' ? -0.9 : 1.1;
+    // PropertyMixer skips writes when the sampled value is unchanged, so undo last frame's procedural overlays first
+    for (const [b, q] of this.baseQ) b.quaternion.copy(q);
     this.mixer.update(dt);
+    if (!this.baseQ.size) for (const b of Object.values(this.bones)) this.baseQ.set(b, new THREE.Quaternion());
+    for (const [b, q] of this.baseQ) q.copy(b.quaternion);
     this.root.position.set(f.x, f.y, 0);
     const yaw = f.face > 0 ? Math.PI / 2 - 0.42 : -Math.PI / 2 + 0.42;
     this.root.rotation.y = THREE.MathUtils.lerp(this.root.rotation.y, yaw, 0.35);
