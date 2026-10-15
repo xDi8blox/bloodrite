@@ -103,3 +103,11 @@ h2{font-family:'Pirata One',serif;font-size:56px;letter-spacing:6px;margin:10px 
 #rotate{display:none;position:fixed;inset:0;background:#000;color:var(--bone);z-index:99;align-items:center;justify-content:center;font-size:24px;letter-spacing:3px;text-align:center}
 @media (orientation:portrait) and (pointer:coarse){#rotate{display:flex}}
 @media (max-height:500px){h2{font-size:34px;margin:4px 0 8px}.menu .it{font-size:18px;padding:4px 18px}.card{width:min(130px,20vw)}#selinfo{min-height:80px;margin-top:8px}#selinfo .bio{display:none}.name{font-size:20px}#timer{font-size:34px;width:64px}.bar{height:20px;top:14px}.meter{top:56px}.combo{font-size:36px}}
+
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.btn.big{font-size:18px;padding:12px 26px;min-width:120px;text-align:center;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.btn.go{background:linear-gradient(#a00,#500);border-color:#ffcc66;color:#fff;box-shadow:0 0 18px #f30;font-weight:bold}
+.screen{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.card,.acard,.it,.btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#s-select{justify-content:flex-start;padding-top:2vh}
+@media (max-height:500px){#s-select h2,#s-arena h2{font-size:24px;margin:2px 0 4px}.card{width:min(92px,14vw)}.card .nm{font-size:16px;padding:4px}.card.sel{transform:translateY(-3px) scale(1.04)}#selinfo{min-height:0;margin-top:4px}#selinfo .t{font-size:22px}#selinfo .sp{display:none}.btnrow{margin-top:6px}.btn.big{font-size:14px;padding:9px 16px;min-width:90px}.acard{width:min(220px,28vw)}.acard .nm{font-size:18px}.acard .ds{display:none}}

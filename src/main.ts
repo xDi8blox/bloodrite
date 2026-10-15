@@ -46,7 +46,7 @@ addEventListener('resize', resize); applyQuality();
 
 // ---------- screens ----------
 let screen = '';
-function show(id: string) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('on')); if (id) $('s-' + id).classList.add('on'); screen = id; }
+function show(id: string) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('on')); if (id) $('s-' + id).classList.add('on'); screen = id; document.getElementById('touch')?.classList.toggle('hidden', !(id === '' && match && touchWanted())); }
 interface Item { label: string; sub?: string; act?: () => void; lr?: (d: number) => void; val?: () => string }
 class Menu {
   el: HTMLElement; items: Item[] = []; sel = 0;
@@ -280,18 +280,37 @@ function showCredits() {
   <p>Engine: three.js (MIT) · Netcode transport: PeerJS (MIT) + PeerJS public signaling server</p>
   <p>Arenas, costumes, VFX, shaders: procedural code.</p><div class="btn" id="credback">BACK</div>`; show('credits'); $('credback').onclick = () => toMenu();
 }
-function renderSelect() {
+// Cards are built once per screen and only re-classed afterwards: rebuilding the DOM on hover destroyed the element
+// under the finger/pointer before the click landed (iOS fires mouseenter before click), so taps never confirmed.
+let selBuilt = false;
+function buildSelect() {
   const grid = $('selgrid'); grid.innerHTML = '';
   CHARS.forEach((c, i) => {
-    const d = document.createElement('div'); d.className = 'card' + (flow.hover[0] === i ? ' sel' : '') + (flow.picking === 1 && flow.hover[1] === i ? ' sel2' : '');
-    d.style.backgroundImage = `url(${portraits[i]})`; d.style.setProperty('--c', c.color);
-    d.innerHTML = `<div class="nm" style="color:${c.color}">${c.name}</div>${flow.c0 === i && flow.picking === 1 ? '<div class="tag">P1</div>' : ''}${flow.picking === 1 && flow.hover[1] === i ? `<div class="tag p2">${flow.mode === 'local' ? 'P2' : 'CPU'}</div>` : ''}`;
-    d.onclick = () => { audioInit(); flow.hover[flow.picking] = i; selConfirm(); }; d.onmouseenter = () => { flow.hover[flow.picking] = i; renderSelect(); };
+    const d = document.createElement('div'); d.className = 'card'; d.dataset.i = String(i); d.style.backgroundImage = `url(${portraits[i]})`; d.style.setProperty('--c', c.color);
+    d.innerHTML = `<div class="nm" style="color:${c.color}">${c.name}</div><div class="tag t1">P1</div><div class="tag p2"></div>`;
+    d.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && flow.hover[flow.picking] !== i) { flow.hover[flow.picking] = i; renderSelect(); } });
+    d.addEventListener('click', () => { audioInit(); if (flow.hover[flow.picking] === i) selConfirm(); else { flow.hover[flow.picking] = i; sfxPlay.ui(); renderSelect(); } });
     grid.appendChild(d);
+  });
+  $('selback').onclick = () => { audioInit(); selBack(); };
+  $('selrand').onclick = () => { audioInit(); flow.hover[flow.picking] = (Math.random() * 4) | 0; selConfirm(); };
+  $('selok').onclick = () => { audioInit(); selConfirm(); };
+  selBuilt = true;
+}
+function selBack() { sfxPlay.ui(); if (flow.picking === 1) { flow.picking = 0; renderSelect(); } else toMenu(); }
+function renderSelect() {
+  if (!selBuilt) buildSelect();
+  document.querySelectorAll<HTMLElement>('#selgrid .card').forEach((d, i) => {
+    d.classList.toggle('sel', flow.hover[0] === i && flow.picking === 0 || flow.picking === 1 && flow.c0 === i);
+    d.classList.toggle('sel2', flow.picking === 1 && flow.hover[1] === i);
+    (d.querySelector('.t1') as HTMLElement).style.display = flow.c0 === i && flow.picking === 1 ? '' : 'none';
+    const t2 = d.querySelector('.p2') as HTMLElement; t2.style.display = flow.picking === 1 && flow.hover[1] === i ? '' : 'none'; t2.textContent = flow.mode === 'local' ? 'P2' : flow.mode === 'practice' ? 'DUMMY' : 'CPU';
   });
   const c = CHARS[flow.hover[flow.picking]];
   $('selinfo').innerHTML = `<div class="t" style="color:${c.color}">${c.name}</div><div class="sub">${c.title.toUpperCase()}</div><div class="bio">${c.bio}</div><div class="sp">${c.specials.map(s => `${s.name} <b>${MOTION_TEXT[s.motion]}+${s.btn}</b>`).join(' · ')} · Super: ${c.superName}</div>`;
   $('seltitle').textContent = flow.picking === 0 ? (flow.mode === 'local' ? 'PLAYER 1 — CHOOSE' : 'CHOOSE YOUR FIGHTER') : flow.mode === 'local' ? 'PLAYER 2 — CHOOSE' : flow.mode === 'practice' ? 'CHOOSE THE DUMMY' : 'CHOOSE YOUR OPPONENT';
+  $('selok').textContent = flow.picking === 0 ? (flow.mode === 'online' ? 'CONFIRM ▶ LOBBY' : 'CONFIRM ' + c.name) : 'CONFIRM ' + c.name + ' ▶ ARENA';
+  $('selrand').textContent = flow.picking === 1 && flow.mode === 'cpu' ? 'RANDOM OPPONENT' : 'RANDOM';
   const h0 = flow.picking === 0 ? flow.hover[0] : flow.c0, h1 = flow.picking === 1 ? flow.hover[1] : (flow.mode === 'online' ? -1 : flow.hover[1]);
   setBackdropFighters(h0, h1 < 0 ? (h0 + 1) % 4 : h1); if (h1 < 0) { views[1].root.visible = false; views[1].setExtrasVisible(false); }
 }
@@ -304,10 +323,14 @@ function selConfirm() {
 let arenaSel = 0;
 function showArena(after?: () => void) {
   show('arena'); const grid = $('arenagrid');
-  const render = () => { grid.innerHTML = ''; ARENAS.forEach((a, i) => { const d = document.createElement('div'); d.className = 'acard' + (i === arenaSel ? ' sel' : ''); d.style.backgroundImage = `url(${thumbs[i]})`; d.innerHTML = `<div class="nm">${a.name}<div class="ds">${a.desc}</div></div>`; d.onclick = () => { arenaSel = i; go(); }; d.onmouseenter = () => { arenaSel = i; render(); }; grid.appendChild(d); }); };
+  grid.innerHTML = ''; ARENAS.forEach((a, i) => { const d = document.createElement('div'); d.className = 'acard'; d.style.backgroundImage = `url(${thumbs[i]})`; d.innerHTML = `<div class="nm">${a.name}<div class="ds">${a.desc}</div></div>`;
+    d.addEventListener('click', () => { audioInit(); if (arenaSel === i) go(); else { arenaSel = i; sfxPlay.ui(); render(); } });
+    d.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && arenaSel !== i) { arenaSel = i; render(); } }); grid.appendChild(d); });
+  const render = () => { grid.querySelectorAll('.acard').forEach((d, i) => d.classList.toggle('sel', i === arenaSel)); $('arenaok').textContent = (after ? 'OPEN ROOM: ' : 'FIGHT IN ') + ARENAS[arenaSel].name.toUpperCase(); setArena(ARENAS[arenaSel].id); };
+  $('arenaok').onclick = () => { audioInit(); go(); }; $('arenaback').onclick = () => { audioInit(); arenaNav('back'); };
   const go = () => { sfxPlay.ui(true); flow.arena = ARENAS[arenaSel].id; if (after) after(); else startMatch({ mode: flow.mode, c0: flow.c0, c1: flow.c1, arena: flow.arena, seed: (Math.random() * 1e9) | 0 }); };
-  arenaNav = (n: string) => { if (n === 'left' || n === 'up') { arenaSel = (arenaSel + 2) % 3; sfxPlay.ui(); render(); } if (n === 'right' || n === 'down') { arenaSel = (arenaSel + 1) % 3; sfxPlay.ui(); render(); } if (n === 'ok') go(); if (n === 'back') startSelect(flow.mode, flow.online); };
-  render(); setArena(ARENAS[arenaSel].id);
+  arenaNav = (n: string) => { if (n === 'left' || n === 'up') { arenaSel = (arenaSel + 2) % 3; sfxPlay.ui(); render(); } if (n === 'right' || n === 'down') { arenaSel = (arenaSel + 1) % 3; sfxPlay.ui(); render(); } if (n === 'ok') go(); if (n === 'back') { if (after) toMenu(); else startSelect(flow.mode, flow.online); } };
+  render();
 }
 let arenaNav: (n: string) => void = () => {};
 function touchWanted() { const t = settings.touch ?? 'auto'; return t === 'on' || (t === 'auto' && (navigator.maxTouchPoints > 0 || params.has('touch'))); }
@@ -318,7 +341,7 @@ function startMatch(cfg: MatchCfg, s?: Session, me: 0 | 1 = 0) {
 function pause() {
   if (!match) return; match.paused = true; show('pause');
   const items: Item[] = [{ label: 'RESUME', act: () => { match!.paused = false; show(''); } }, { label: 'MOVE LIST', act: () => showMoves('pause') }];
-  if (match.cfg.mode === 'practice') items.push({ label: 'DUMMY', val: () => match!.dummy.toUpperCase(), lr: () => { const o = ['stand', 'block', 'cpu'] as const; match!.dummy = o[(o.indexOf(match!.dummy) + 1) % 3]; } });
+  if (match.cfg.mode === 'practice') items.push({ label: 'DUMMY', val: () => (match?.dummy ?? '').toUpperCase(), lr: () => { const o = ['stand', 'block', 'cpu'] as const; match!.dummy = o[(o.indexOf(match!.dummy) + 1) % 3]; } });
   if (!match.net) items.push({ label: 'RESTART', act: () => startMatch({ ...match!.cfg, seed: (Math.random() * 1e9) | 0 }) });
   items.push({ label: match.net ? 'LEAVE MATCH' : 'QUIT TO MENU', act: () => toMenu() }); pauseMenu.set(items);
 }
@@ -373,7 +396,7 @@ function navHandle() {
     else if (screen === 'select') {
       const p = flow.picking; const h = flow.hover;
       if (n === 'left') { h[p] = (h[p] + 3) % 4; sfxPlay.ui(); renderSelect(); } if (n === 'right') { h[p] = (h[p] + 1) % 4; sfxPlay.ui(); renderSelect(); }
-      if (n === 'ok') selConfirm(); if (n === 'back') { if (p === 1) { flow.picking = 0; renderSelect(); } else toMenu(); }
+      if (n === 'ok') selConfirm(); if (n === 'back') selBack();
     }
     else if (screen === 'arena') arenaNav(n);
     else if (screen === 'moves') { if (n === 'back' || n === 'ok' || n === 'pause') closeMoves(); }
@@ -385,7 +408,9 @@ function navHandle() {
 }
 function goTitle() { audioInit(); sfxPlay.ui(true); toMenu(); }
 addEventListener('keydown', e => { if (e.code === 'Tab' && match?.cfg.mode === 'practice') { e.preventDefault(); const o = ['stand', 'block', 'cpu'] as const; match.dummy = o[(o.indexOf(match.dummy) + 1) % 3]; } });
-addEventListener('pointerdown', () => { audioInit(); if (screen === 'title') goTitle(); });
+addEventListener('pointerdown', () => audioInit());
+// title advances on click (not pointerdown): advancing on pointerdown let the same tap's click land on the main-menu item underneath
+addEventListener('click', () => { if (screen === 'title') goTitle(); });
 $('tpause').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); pause(); });
 setupTouch($('touch'));
 function frame(now: number) {

@@ -63,6 +63,7 @@ npm run build        # type-check + production build into dist/
 node tools/build-assets.mjs   # re-encode raw Quaternius files from assets-src/ (not committed)
 node tools/shots.mjs          # regenerate screenshots (dev server must be running)
 node tools/online-test.mjs    # two headless pages play an online match and compare state hashes
+node tools/ui-test.mjs [url] [touch|mouse|both]  # tap-only (iPhone landscape) + mouse-only title→menu→select→arena→fight, all modes
 ```
 
 ## Credits
